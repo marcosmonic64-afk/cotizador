@@ -37,7 +37,7 @@ moldura_seleccionada = st.selectbox(
 
 estilo_seleccionado = st.selectbox(
     "Seleccione el estilo de enmarcado:",
-    ["Doble Vidrio", "Con Marialuisa (Cartón Blanco)"]
+    ["Doble Vidrio", "Con Marialuisa"]
 )
 
 # 2. PROCESAMIENTO CON DATOS EXACTOS DE TU TALLER
@@ -70,7 +70,7 @@ if largo > 0 and ancho > 0:
     costos_fijos_materiales = 21.1430
     mano_obra_empleado = 200.00
     
-    # E. Complejidad (Ajustada a BAJA según tu indicación)
+    # E. Complejidad (Ajustada a BAJA)
     if perimetro <= 140:
         factor_complejidad = 10
     else:
@@ -78,7 +78,7 @@ if largo > 0 and ancho > 0:
         
     costo_complejidad = factor_complejidad * perimetro
     
-    # F. Suma total del Costo Base de Producción (Incluyendo costos fijos)
+    # F. Suma total del Costo Base de Producción
     costo_total_taller = (
         costo_moldura + 
         costo_vidrio + 
@@ -105,7 +105,6 @@ if largo > 0 and ancho > 0:
         <div class="price-box">
             <h3 style='margin:0; color:#666666; font-size: 15px; font-weight: normal;'>Tu precio especial es:</h3>
             <h1 style='margin:12px 0; color:#111111; font-size: 36px;'>¢{precio_redondeado:,.0f} Colones</h1>
-            <p style='margin:0; color:#888888; font-size: 11px;'>*Incluye IVA y comisiones bancarias.</p>
         </div>
         """, unsafe_allow_html=True)
 else:
