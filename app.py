@@ -2,14 +2,14 @@ import streamlit as st
 import math
 
 # Configuración de la interfaz
-st.set_page_config(page_title="Marcos Monic - Cotizador Gyotaku VIP", page_icon="🖼️", layout="centered")
+st.set_page_config(page_title="Marcos Monic - Cotizador Gyotaku", page_icon="🖼️", layout="centered")
 
-# Estilos visuales limpios y profesionales en blanco y negro
+# Estilos visuales limpios en blanco y negro (Identidad del taller)
 st.markdown("""
     <style>
     .main {background-color: #ffffff;}
-    h1 {color: #111111; font-family: 'Helvetica'; text-align: center; font-size: 28px;}
-    .stNumberInput label {font-size: 16px !important; font-weight: bold; color: #222222;}
+    h1 {color: #111111; font-family: 'Helvetica'; text-align: center; font-size: 26px; font-weight: bold;}
+    .stNumberInput label, .stSelectbox label {font-size: 15px !important; font-weight: bold; color: #222222;}
     .price-box {
         background-color: #f9f9f9;
         padding: 24px;
@@ -21,94 +21,91 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🖼️ Cotizador Exclusivo - Gyotaku VIP")
-st.write("Ingrese las dimensiones de la obra para obtener su tarifa especial en enmarcados de **Doble Vidrio**.")
+st.title("🖼️ Cotizador de Enmarcados")
+st.write("Ingrese las dimensiones de la obra para obtener su tarifa especial de taller.")
 
 st.divider()
 
-# 1. ENTRADAS DE DATOS (Lo único que ve el cliente)
-largo = st.number_input("Largo de la obra en CM (Lado más largo):", min_value=0.0, step=0.5, value=70.0)
+# 1. ENTRADAS DE DATOS (Interactivo para el cliente)
+largo = st.number_input("Largo de la obra en CM:", min_value=0.0, step=0.5, value=70.0)
 ancho = st.number_input("Ancho de la obra en CM:", min_value=0.0, step=0.5, value=50.0)
 
-# 2. CONSTANTES DE COSTOS DEL TALLER (Ocultas para el cliente)
-# Moldura fija seleccionada por defecto para este estilo (ejemplo: Yenory 1" Doble)
-cost_per_cm_moldura = 25.00  
+moldura_seleccionada = st.selectbox(
+    "Seleccione el tipo de moldura:",
+    ["Yenory 1\"", "Caja Pequeña"]
+)
 
-# Costo del Doble Vidrio por cm²
-cost_vidrio_cm2 = 3.00  
+estilo_seleccionado = st.selectbox(
+    "Seleccione el estilo de enmarcado:",
+    ["Doble Vidrio", "Con Marialuisa (Cartón Blanco)"]
+)
 
-# Mano de obra base fija del empleado
-mano_obra_empleado = 2000.00  
-
-# Variables fijas del Gyotaku tradicional (Doble vidrio transparente, sin cartón, sin papel tapiz)
-cost_carton_cm2 = 0.00  
-cost_pintura_cm_lineal = 0.00  
-cost_papeltapiz_cm_lineal = 0.00  
-
-# 3. PROCESAMIENTO DE LA FÓRMULA MATEMÁTICA REAL DE APPSHEET
+# 2. PROCESAMIENTO CON DATOS EXACTOS DE TU TALLER
 if largo > 0 and ancho > 0:
     # Perímetro y Área base
-    perimetro_lineal = 2 * (ancho + largo)
-    area_cm2 = ancho * largo
+    perimetro = 2 * (ancho + largo)
+    area = ancho * largo
     
-    # A. Costo de Moldura con desperdicio (+8 cm)
-    costo_moldura = cost_per_cm_moldura * (perimetro_lineal + 8)
+    # A. Asignación del costo de la moldura
+    if moldura_seleccionada == "Yenory 1\"":
+        cost_per_cm_moldura = 12.50
+    else:  # Caja Pequeña
+        cost_per_cm_moldura = 9.6875
+        
+    costo_moldura = cost_per_cm_moldura * (perimetro + 8)
     
-    # B. Costo de Materiales por Área (Doble Vidrio)
-    costo_vidrio = cost_vidrio_cm2 * area_cm2
-    costo_carton = cost_carton_cm2 * area_cm2
+    # B. Asignación según el estilo (Doble Vidrio vs Marialuisa)
+    if estilo_seleccionado == "Doble Vidrio":
+        costo_vidrio = 3.00 * area
+        costo_carton = 0.00 * area
+    else:  # Con Marialuisa
+        costo_vidrio = 1.50 * area
+        costo_carton = 0.6445 * area
+        
+    # C. Acabados fijos (Pintura Spray Negra)
+    costo_pintura = 11.0544 * perimetro
+    costo_papel_tapiz = 0.00
     
-    # C. Costo de Acabados por Perímetro
-    costo_pintura = cost_pintura_cm_lineal * perimetro_lineal
-    costo_papeltapiz = cost_papeltapiz_cm_lineal * perimetro_lineal
+    # D. Costos Fijos e Insumos del Taller (Datos de tu AppSheet)
+    costos_fijos_materiales = 21.1430
+    mano_obra_empleado = 200.00
     
-    # D. Cálculo Lógico de Complejidad (Mano de Obra Variable)
-    # Por defecto para doble vidrio se establece complejidad "Media" debido al peso e instalación
-    complejidad_tipo = "Media" 
-    
-    if perimetro_lineal <= 140 and complejidad_tipo == "Baja":
+    # E. Complejidad (Ajustada a BAJA según tu indicación)
+    if perimetro <= 140:
         factor_complejidad = 10
     else:
-        if complejidad_tipo == "Baja":
-            factor_complejidad = 20
-        elif complejidad_tipo == "Media":
-            factor_complejidad = 40
-        elif complejidad_tipo == "Alta":
-            factor_complejidad = 70
-        else:
-            factor_complejidad = 0
-            
-    costo_complejidad = factor_complejidad * perimetro_lineal
+        factor_complejidad = 20
+        
+    costo_complejidad = factor_complejidad * perimetro
     
-    # E. Suma total del Costo del Taller antes del multiplicador comercial
+    # F. Suma total del Costo Base de Producción (Incluyendo costos fijos)
     costo_total_taller = (
         costo_moldura + 
         costo_vidrio + 
         costo_carton + 
         costo_pintura + 
-        costo_papeltapiz + 
+        costo_papel_tapiz + 
+        costos_fijos_materiales + 
         mano_obra_empleado + 
         costo_complejidad
     )
     
-    # F. Multiplicador de Ganancia Estándar del taller (* 1.5) y redondeo al techo (CEILING)
-    precio_regular_taller = math.ceil(costo_total_taller * 1.5)
+    # G. Multiplicador comercial (* 1.5) y redondeo al techo (CEILING) igual a AppSheet
+    precio_regular = math.ceil(costo_total_taller * 1.5)
     
-    # 4. APLICACIÓN DE LA REGLA VIP (20% Descuento y Piso Mínimo de ¢7,000)
-    precio_con_descuento = precio_regular_taller * 0.80
+    # H. Aplicación del 20% de Descuento y Mínimo de ¢7,000
+    precio_con_descuento = precio_regular * 0.80
+    precio_final = max(7000.0, precio_con_descuento)
     
-    # Filtro del MAX(7000, precio)
-    precio_vip_final = max(7000, precio_con_descuento)
-    
-    # Redondeo final a la centena más cercana para limpieza visual del cliente
-    precio_redondeado = round(precio_vip_final, -2)
+    # Redondeo final a la centena más cercana
+    precio_redondeado = round(precio_final, -2)
 
-    # 5. DESPLIEGUE VISUAL EN PANTALLA
+    # 3. DESPLIEGUE DEL RESULTADO EN PANTALLA
     st.markdown(f"""
         <div class="price-box">
-            <h3 style='margin:0; color:#666666; font-size: 16px; font-weight: normal;'>Tu Tarifa Especial VIP:</h3>
-            <h1 style='margin:12px 0; color:#111111; font-size: 38px;'>¢{precio_redondeado:,.0f} Colones</h1>
-            <p style='margin:0; color:#888888; font-size: 11px;'>*Tarifa para enmarcado doble vidrio. Incluye IVA y comisiones bancarias.</p>
+            <h3 style='margin:0; color:#666666; font-size: 15px; font-weight: normal;'>Tu precio especial es:</h3>
+            <h1 style='margin:12px 0; color:#111111; font-size: 36px;'>¢{precio_redondeado:,.0f} Colones</h1>
+            <p style='margin:0; color:#888888; font-size: 11px;'>*Incluye IVA y comisiones bancarias.</p>
         </div>
         """, unsafe_allow_html=True)
 else:
